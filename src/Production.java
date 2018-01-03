@@ -55,11 +55,20 @@ public class Production {//语句
         return left + "->" + right;
     }
 
-    public Production insertDian() {
+    public Production insertDian() {//加点
         Production a=new Production(left + "->" +Dian +right);
         return a;
     }
-    public Production moveDian() {
+    public Production deleteDian() {//去除点
+        Production a=new Production();
+        a.setLeft(left);
+        int iD=right.indexOf(Dian);
+        StringBuffer ab=new StringBuffer(right);
+        ab.deleteCharAt(iD);
+        a.setRight(ab.toString());
+        return a;
+    }
+    public Production moveDian() {//向右移动点
         Production a=new Production();
         a.setLeft(left);
         int iD=right.indexOf(Dian);
