@@ -1,0 +1,102 @@
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import static java.util.Arrays.sort;
+
+public class Production {//语句
+    private static final char Dian = '･';
+    String left;
+    String right;
+
+    //left->right
+    public Production(String a) {
+        String b[] = a.split("->");
+        left = b[0];
+        right = b[1];
+    }
+    public Production() { }
+
+    public String getLeft() {
+        return left;
+    }
+
+    public void setLeft(String left) {
+        this.left = left;
+    }
+
+    public String getRight() {
+        return right;
+    }
+
+    public void setRight(String right) {
+        this.right = right;
+    }
+
+    public boolean isSimple() {
+        if (right.indexOf("|") == -1)
+            return true;
+        else
+            return false;
+    }
+
+    public ArrayList<Production> toSimple() {
+        ArrayList<Production> productionList = new ArrayList<Production>();
+        String b[] = right.split("\\|");
+        for (int i = 0; i < b.length; i++) {
+            // System.out.println(b[i]);
+            Production ib = new Production(left + "->" + b[i]);
+            productionList.add(ib);
+        }
+        return productionList;
+    }
+
+    public String toString() {
+        return left + "->" + right;
+    }
+
+    public Production insertDian() {
+        Production a=new Production(left + "->" +Dian +right);
+        return a;
+    }
+    public Production moveDian() {
+        Production a=new Production();
+        a.setLeft(left);
+        int iD=right.indexOf(Dian);
+        StringBuffer ab=new StringBuffer(right);
+        ab.deleteCharAt(iD);
+        ab.insert(iD+1,Dian);
+        a.setRight(ab.toString());
+        return a;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        Production other = (Production) obj;
+        String[] a = right.split("\\|");
+        sort(a);
+        String[] b = other.right.split("\\|");
+        sort(b);
+        if (a.length == b.length) {
+            for (int i = 0; i < b.length; i++) {
+                if (!a[i].equals(b[i]))
+                    return false;
+            }
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    @Override
+    public int hashCode() {//不写的话HashSet认为同一“A->B”生成的Production（值）不相等
+        int result = 0;
+        String b[] = right.split("\\|");
+        for (String ib : b) {
+            result += ib.hashCode();
+        }
+        result += left.hashCode() * 31;
+        return result;
+    }
+
+}
