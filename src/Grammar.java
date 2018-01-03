@@ -247,4 +247,42 @@ public class Grammar {
         }
         return true;
     }
+    public boolean contains(String st){
+        st+="#";
+        Stack<Integer> stateStack = new Stack<>();
+        Stack<String> signStack = new Stack<>();
+        stateStack.push(0);
+        signStack.push("#");
+        Production p;
+        int VTL=VT.size();
+        for (int i = 0; i <st.length() ; i++) {
+            String a=st.substring(i,i+1);
+            int ai=tableHead.indexOf(a);
+            String ag=LRTable[stateStack.peek()][ai];
+            if(ag==null)return false;
+            else if(ag.equals("acc")){
+                return true;
+            }
+            if(ai<VT.size()+1){//action
+                int nub=Integer.valueOf(ag.substring(1));
+                if(ag.charAt(0)=='S'){
+                    stateStack.push(nub);
+                    signStack.push(a);
+                }else{//r
+                   p=PList.get(nub);
+                   int k=p.getRight().length();
+                   while(k-->0){
+                       stateStack.pop();
+                       signStack.pop();
+                   }
+                    //goto
+                    String go=LRTable[stateStack.peek()][tableHead.indexOf(p.getLeft())];
+                    stateStack.push(Integer.valueOf(go));
+                    signStack.push(p.getLeft());
+                    i--;
+                }
+            }
+        }
+       return false;
+    }
 }

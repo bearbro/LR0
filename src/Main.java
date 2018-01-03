@@ -6,6 +6,7 @@ public class Main {
         Grammar G=new Grammar(P,S);
 
         G.out();
+        System.out.print(G.contains("bccd"));
 //        Production a=new Production("A->c|B|d");
 //        Production b=new Production("A->B|c|d");
 //        if(a.equals(b)){
