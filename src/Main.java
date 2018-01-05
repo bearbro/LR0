@@ -1,12 +1,17 @@
 public class Main {
-
+    private static final char Njump = 'ε';
     public static void main(String[] args) {
         String S="E";//开始符
-        String P[]={"E->aA|bB","A->cA|d","B->cB|d"};//规则集
+//        String P[]={"E->aA|bB","A->cA|d","B->cB|d"};//规则集
+        String P[]={"E->aA|bBC","C->"+Njump,"A->cA|d","B->cB|d"};//规则集
         Grammar G=new Grammar(P,S);
 
         G.out();
-        System.out.print(G.contains("bccd"));
+        try {
+            System.out.print(G.contains("bccd"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 //        Production a=new Production("A->c|B|d");
 //        Production b=new Production("A->B|c|d");
 //        if(a.equals(b)){

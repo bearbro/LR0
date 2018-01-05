@@ -6,6 +6,7 @@ import static java.util.Arrays.sort;
 
 public class Production {//语句
     private static final char Dian = '･';
+    private static final char Njump = 'ε';
     String left;
     String right;
 
@@ -56,7 +57,13 @@ public class Production {//语句
     }
 
     public Production insertDian() {//加点
-        Production a=new Production(left + "->" +Dian +right);
+        Production a;
+        if(right.equals(String.valueOf(Njump))){// A->ε 转 A->･
+            a=new Production(left + "->" +Dian);
+        }else{
+            a=new Production(left + "->" +Dian +right);
+        }
+
         return a;
     }
     public Production deleteDian() {//去除点
@@ -65,6 +72,9 @@ public class Production {//语句
         int iD=right.indexOf(Dian);
         StringBuffer ab=new StringBuffer(right);
         ab.deleteCharAt(iD);
+        if(ab.length()==0){//A->･ 转 A->ε
+            ab.append(Njump);
+        }
         a.setRight(ab.toString());
         return a;
     }
@@ -81,6 +91,9 @@ public class Production {//语句
     @Override
     public boolean equals(Object obj) {
         Production other = (Production) obj;
+        if(!left.equals(other.left)){
+            return false;
+        }
         String[] a = right.split("\\|");
         sort(a);
         String[] b = other.right.split("\\|");

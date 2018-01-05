@@ -10,8 +10,10 @@ public class Grammar {
     Set<IE> IESet;//活前缀项目集间的边集
     ArrayList<Set<Production>> IList;//项目集的数组
     ArrayList<Production> PList;//规则集的数组
-    String [][]LRTable;
+    String[][] LRTable;
     ArrayList<String> tableHead;
+    Boolean isLRO = true;
+
     public Grammar(Set<String> VN, Set<String> VT, Set<Production> p, String s) {
         this.VN = VN;
         this.VT = VT;
@@ -51,13 +53,16 @@ public class Grammar {
         Set<Production> I0 = new HashSet<>();//活前缀项目集的开始集
         I0.add(new Production(this.S + "->" + Dian + S));
         calculationCLOSURE(I0);
-        IList =new ArrayList<>();
+        IList = new ArrayList<>();
         IList.add(I0);
 //        System.out.println(I0);
         calculationDFA();
 //        System.out.println(ISet);
 //        System.out.println("s");
-        System.out.println(createLRTable());
+        if (!(isLRO = createLRTable())) {
+            System.out.println("NO LR(0)!");
+        }
+
     }
 
     //对项目集I进行闭包运算
@@ -69,8 +74,8 @@ public class Grammar {
             for (Production i : I) {
                 String iRight = i.right;
                 int Di = iRight.indexOf(Dian);
-                if (Di+1 < iRight.length()) {
-                    String inV = iRight.substring(Di+1, Di +2);
+                if (Di + 1 < iRight.length()) {
+                    String inV = iRight.substring(Di + 1, Di + 2);
                     if (VN.contains(inV)) {
                         nV.add(inV);
                     }
@@ -85,49 +90,50 @@ public class Grammar {
     }
 
     //求活前缀DFA,得到边集、项目集
-    private void calculationDFA(){
-        IESet =new HashSet<>();
+    private void calculationDFA() {
+        IESet = new HashSet<>();
         Queue<Set<Production>> queue = new LinkedList<>();
         queue.add(IList.get(0));
         Set<Production> nI;
-        Map<String,Set<Production>> nIMap;
+        Map<String, Set<Production>> nIMap;
 
-        while (!queue.isEmpty()){
-            Set<Production> iI=queue.poll();
-            nIMap=new HashMap<>();
+        while (!queue.isEmpty()) {
+            Set<Production> iI = queue.poll();
+            nIMap = new HashMap<>();
             //求核
             for (Production i : iI) {
                 String iRight = i.right;
                 int Di = iRight.indexOf(Dian);
-                if (Di+1 < iRight.length()) {
-                    String iV = iRight.substring(Di+1, Di +2);
-                    nI=nIMap.get(iV);
-                    if(nI==null){
-                        nI=new HashSet<>();
+                if (Di + 1 < iRight.length()) {
+                    String iV = iRight.substring(Di + 1, Di + 2);
+                    nI = nIMap.get(iV);
+                    if (nI == null) {
+                        nI = new HashSet<>();
                         nI.add(i.moveDian());//移点
-                        nIMap.put(iV,nI);
-                    }else{
+                        nIMap.put(iV, nI);
+                    } else {
                         nI.add(i.moveDian());
                     }
                 }
             }
             //求闭包
-            int iList=IList.indexOf(iI);
-            for (String v:nIMap.keySet()) {
-                nI=nIMap.get(v);
+            int iList = IList.indexOf(iI);
+            for (String v : nIMap.keySet()) {
+                nI = nIMap.get(v);
                 calculationCLOSURE(nI);
 
-                int jList=IList.indexOf(nI);
-                if(jList==-1){
+                int jList = IList.indexOf(nI);
+                if (jList == -1) {
                     queue.add(nI);
                     IList.add(nI);
-                    jList=IList.size()-1;
+                    jList = IList.size() - 1;
                 }
-                IESet.add(new IE(iList,v,jList));
+                IESet.add(new IE(iList, v, jList));
             }
             nIMap.clear();
         }
     }
+
     public void out() {
         System.out.println("VN:");
         for (Object iVN : VN) {
@@ -138,7 +144,7 @@ public class Grammar {
             System.out.println(iVT);
         }
         System.out.println("P:");
-        for (Object ip : P) {
+        for (Object ip : PList) {
             System.out.println(ip.toString());
         }
         System.out.println("S:");
@@ -147,22 +153,23 @@ public class Grammar {
         System.out.println(IESet);
         System.out.println("LR0Table:");
         System.out.printf("%30s", "LR0");
-        for (String i:tableHead) {
+        for (String i : tableHead) {
             System.out.printf("%10s", i);
         }
         System.out.print("\n");
-        for (int i = 0; i <LRTable.length; i++) {
-            System.out.printf("%30s", IList.get(i));
-            for (int j = 0; j <LRTable[0].length; j++) {
-                if(LRTable[i][j]!=null)
+        for (int i = 0; i < LRTable.length; i++) {
+            System.out.printf("%30s", "S" + i + IList.get(i));
+            for (int j = 0; j < LRTable[0].length; j++) {
+                if (LRTable[i][j] != null)
                     System.out.printf("%10s", LRTable[i][j]);
                 else
-                    System.out.printf("%10s","");
+                    System.out.printf("%10s", "");
             }
             System.out.print("\n");
         }
     }
 
+    //构造LR0分析表
     public boolean createLRTable() {
         PList = new ArrayList<>();
         PList.addAll(P);
@@ -190,7 +197,7 @@ public class Grammar {
                 String right = ip.getRight();
                 int iD = right.indexOf(Dian);
                 if (iD < right.length() - 1) { //A->α･aβ GO(Ik,a)=Ij
-                    String a = right.substring(iD+1, iD + 2);
+                    String a = right.substring(iD + 1, iD + 2);
                     if (VT.contains(a)) {//a为终结符
                         int ia = tableHead.indexOf(a);
                         if (LRTable[k][ia] == null)
@@ -199,14 +206,16 @@ public class Grammar {
                             return false;
                     }
                 } else {//A->α･
-                    if(ip.getLeft().equals(S)){
+                    if (ip.getLeft().equals(S)) {
                         if (LRTable[k][VT.size()] == null)
                             LRTable[k][VT.size()] = "acc";
                         else
                             return false;
-                    }
-                    else {
+                    } else {
                         for (int ia = 0; ia < VT.size() + 1; ia++) {
+                            if (ip.getLeft().equals("A")) {
+                                int b = 0;
+                            }
                             if (LRTable[k][ia] == null)
                                 LRTable[k][ia] = "r" + PList.indexOf(ip.deleteDian());
                             else
@@ -237,9 +246,9 @@ public class Grammar {
         //合并表
         for (int j = VT.size(); j < tableHead.size(); j++) {
             for (int k = 0; k < IList.size(); k++) {
-                if(go[k][j]!=0){
+                if (go[k][j] != 0) {
                     if (LRTable[k][j] == null)
-                    LRTable[k][j]=""+go[k][j];
+                        LRTable[k][j] = "" + go[k][j];
                     else
                         return false;
                 }
@@ -247,42 +256,61 @@ public class Grammar {
         }
         return true;
     }
-    public boolean contains(String st){
-        st+="#";
-        Stack<Integer> stateStack = new Stack<>();
-        Stack<String> signStack = new Stack<>();
-        stateStack.push(0);
-        signStack.push("#");
-        Production p;
-        int VTL=VT.size();
-        for (int i = 0; i <st.length() ; i++) {
-            String a=st.substring(i,i+1);
-            int ai=tableHead.indexOf(a);
-            String ag=LRTable[stateStack.peek()][ai];
-            if(ag==null)return false;
-            else if(ag.equals("acc")){
-                return true;
-            }
-            if(ai<VT.size()+1){//action
-                int nub=Integer.valueOf(ag.substring(1));
-                if(ag.charAt(0)=='S'){
-                    stateStack.push(nub);
-                    signStack.push(a);
-                }else{//r
-                   p=PList.get(nub);
-                   int k=p.getRight().length();
-                   while(k-->0){
-                       stateStack.pop();
-                       signStack.pop();
-                   }
-                    //goto
-                    String go=LRTable[stateStack.peek()][tableHead.indexOf(p.getLeft())];
-                    stateStack.push(Integer.valueOf(go));
-                    signStack.push(p.getLeft());
-                    i--;
+
+    //判断st是否符合文法，LR0分析器
+    public boolean contains(String st) throws Exception {
+        if (isLRO) {
+            st += "#";
+            Stack<Integer> stateStack = new Stack<>();
+            Stack<String> signStack = new Stack<>();
+            stateStack.push(0);
+            signStack.push("#");
+            Production p;
+            int VTL = VT.size();
+            int bz = 0;//步骤数
+            for (int i = 0; i < st.length(); i++) {
+                if (true) {//显示分析过程
+                    System.out.println(++bz);
+                    System.out.print("状态栈：");
+                    System.out.println(stateStack);
+                    System.out.print("符号栈：");
+                    System.out.println(signStack);
+                    System.out.print("输入串：");
+                    System.out.println(st.substring(i));
+                }
+                String a = st.substring(i, i + 1);
+                int ai = tableHead.indexOf(a);
+                String ag = LRTable[stateStack.peek()][ai];
+                if (ag == null) return false;
+                else if (ag.equals("acc")) {
+                    return true;
+                }
+                if (ai < VT.size() + 1) {//action
+                    int nub = Integer.valueOf(ag.substring(1));
+                    if (ag.charAt(0) == 'S') {
+                        stateStack.push(nub);
+                        signStack.push(a);
+                    } else {//r
+                        p = PList.get(nub);
+                        int k = p.getRight().length();
+                        if (!p.getRight().equals(String.valueOf(Njump))) {//排除归约为 A->ε
+                            while (k-- > 0) {
+                                stateStack.pop();
+                                signStack.pop();
+                            }
+                        }
+                        //goto
+                        String go = LRTable[stateStack.peek()][tableHead.indexOf(p.getLeft())];
+                        if (go == null) return false;
+                        stateStack.push(Integer.valueOf(go));
+                        signStack.push(p.getLeft());
+                        i--;
+                    }
                 }
             }
+            return false;
         }
-       return false;
+        throw new Exception("无法判断：该文法不是LR(0)文法！");
+
     }
 }
